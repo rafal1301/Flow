@@ -382,9 +382,80 @@ input[type="color"]{width:100%;height:38px;padding:3px;border:1px solid var(--bo
 ::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:3px}
 @media(max-width:900px){.kanban-wrap{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:700px){.sidebar{display:none}.content{padding:14px}.stats-row{grid-template-columns:repeat(2,1fr)}.topbar{padding:12px 14px}}
+
+/* ── SYNC STATUS BAR ── */
+.sync-bar{display:flex;align-items:center;gap:8px;padding:6px 26px;font-size:11.5px;font-weight:500;border-bottom:1px solid var(--border);background:var(--bg2);transition:all .3s;min-height:34px}
+.sync-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;transition:background .3s}
+.sync-dot.ok{background:var(--green)}
+.sync-dot.saving{background:var(--yellow);animation:pulse .7s infinite}
+.sync-dot.error{background:var(--red)}
+.sync-dot.offline{background:var(--text3)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.sync-msg{color:var(--text3);flex:1}
+.sync-actions{display:flex;gap:6px;margin-left:auto}
+.sync-btn{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:600;padding:4px 11px;border:1px solid var(--border);border-radius:5px;background:transparent;color:var(--text3);cursor:pointer;transition:all .14s;white-space:nowrap}
+.sync-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--glow)}
+.sync-btn.danger:hover{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08)}
 </style>
 </head>
 <body>
+<!-- Firebase SDK -->
+<script type="module">
+  import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+  import{getDatabase,ref,set,onValue,serverTimestamp}from'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
+  const firebaseConfig={
+    apiKey:"AIzaSyDY-qdJFgCSonk5y3m58SKlRBC7XoM7CPY",
+    authDomain:"projectflow-b716d.firebaseapp.com",
+    databaseURL:"https://projectflow-b716d-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId:"projectflow-b716d",
+    storageBucket:"projectflow-b716d.firebasestorage.app",
+    messagingSenderId:"33088853438",
+    appId:"1:33088853438:web:327b9ba473821a1b15d5ef"
+  };
+  const app=initializeApp(firebaseConfig);
+  const db=getDatabase(app);
+  const DATA_REF='projektflow/data';
+  let _ignoreNext=false;
+  let _saveTimer=null;
+
+  // Expose to global scope for non-module script
+  window._fbSet=(data)=>{
+    setSyncStatus('saving','Zapisywanie…');
+    return set(ref(db,DATA_REF),{...data,_ts:Date.now()})
+      .then(()=>setSyncStatus('ok','Zsynchronizowano ✓'))
+      .catch(e=>{console.error(e);setSyncStatus('error','Błąd zapisu — sprawdź połączenie')});
+  };
+
+  // Listen for remote changes
+  onValue(ref(db,DATA_REF),(snap)=>{
+    if(_ignoreNext){_ignoreNext=false;return}
+    const val=snap.val();
+    if(!val)return;
+    // Remove internal timestamp before using as app state
+    const{_ts,...data}=val;
+    if(!data.projects)return;
+    // Merge into localStorage and reload app state
+    try{
+      localStorage.setItem('pf7',JSON.stringify(data));
+      window._fbRemoteUpdate&&window._fbRemoteUpdate(data);
+    }catch(e){console.error(e)}
+  },(e)=>{setSyncStatus('offline','Offline — dane lokalne');});
+
+  window._fbIgnoreNext=()=>{_ignoreNext=true};
+
+  function setSyncStatus(type,msg){
+    const dot=document.getElementById('sync-dot');
+    const msgEl=document.getElementById('sync-msg');
+    if(!dot||!msgEl)return;
+    dot.className='sync-dot '+type;
+    msgEl.textContent=msg;
+  }
+
+  // Initial status
+  window.addEventListener('load',()=>setSyncStatus('ok','Połączono z Firebase'));
+  window.addEventListener('offline',()=>setSyncStatus('offline','Brak połączenia — dane lokalne'));
+  window.addEventListener('online',()=>{setSyncStatus('ok','Połączono — synchronizuję…');window._triggerSave&&window._triggerSave()});
+</script>
 <div class="app">
 
 <!-- SIDEBAR -->
@@ -438,6 +509,17 @@ input[type="color"]{width:100%;height:38px;padding:3px;border:1px solid var(--bo
   <div class="topbar">
     <div><div class="topbar-title" id="ttitle">Przegląd</div><div class="topbar-sub" id="tsub">Wszystkie projekty</div></div>
     <button class="btn-primary" id="topbar-btn" onclick="openPM()">＋ Nowy projekt</button>
+  </div>
+  <!-- SYNC STATUS BAR -->
+  <div class="sync-bar">
+    <div class="sync-dot ok" id="sync-dot"></div>
+    <span class="sync-msg" id="sync-msg">Łączenie z Firebase…</span>
+    <div class="sync-actions">
+      <button class="sync-btn" onclick="exportJSON()" title="Pobierz kopię zapasową danych">⬇ Eksportuj JSON</button>
+      <button class="sync-btn" onclick="document.getElementById('import-file').click()" title="Wgraj dane z pliku JSON">⬆ Importuj JSON</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importJSON(event)">
+      <button class="sync-btn danger" onclick="forceSyncToCloud()" title="Wyślij dane z tego urządzenia do chmury">☁ Wyślij do chmury</button>
+    </div>
   </div>
   <div class="content">
 
@@ -656,8 +738,102 @@ const PO={high:0,med:1,low:2};
 const DAYS=['Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota','Niedziela'];
 const DAYS_S=['Pon','Wt','Śr','Czw','Pt','Sob','Nie'];
 
+// ── Migracja danych ze starych kluczy ─────────────────
+(function migrate(){
+  const TARGET='pf7';
+  if(localStorage.getItem(TARGET))return;
+  const old=['pf6','pf5','pf4','pf3'];
+  for(const key of old){
+    const raw=localStorage.getItem(key);
+    if(raw){
+      try{
+        const d=JSON.parse(raw);
+        if(!d.goals)d.goals=[];
+        if(!d.kanban)d.kanban=[];
+        if(!Array.isArray(d.notes))d.notes=[];
+        if(!d.theme)d.theme='dark';
+        d.projects.forEach(p=>{if(!d.tasks[p.id])d.tasks[p.id]=[]});
+        localStorage.setItem(TARGET,JSON.stringify(d));
+        console.log(`ProjektFlow: migrowano dane z ${key} → ${TARGET}`);
+        break;
+      }catch(e){console.warn('Błąd migracji z',key,e)}
+    }
+  }
+})();
+
 function load(){try{return JSON.parse(localStorage.getItem('pf7'))||null}catch{return null}}
-function save(){localStorage.setItem('pf7',JSON.stringify(S))}
+
+let _saveDebounce=null;
+function save(){
+  // Always save to localStorage immediately
+  localStorage.setItem('pf7',JSON.stringify(S));
+  // Debounce Firebase save (300ms) to avoid hammering on rapid changes
+  clearTimeout(_saveDebounce);
+  _saveDebounce=setTimeout(()=>{
+    if(window._fbSet){
+      window._fbIgnoreNext&&window._fbIgnoreNext();
+      window._fbSet(JSON.parse(JSON.stringify(S)));
+    }
+  },300);
+}
+
+// Called by Firebase when remote update arrives
+window._fbRemoteUpdate=(data)=>{
+  // Only update if remote data is actually different
+  const localRaw=localStorage.getItem('pf7');
+  const remoteRaw=JSON.stringify(data);
+  if(localRaw===remoteRaw)return;
+  // Apply remote data
+  Object.assign(S,data);
+  S.projects.forEach(p=>{if(!S.tasks[p.id])S.tasks[p.id]=[]});
+  if(!S.goals)S.goals=[];if(!S.kanban)S.kanban=[];if(!S.notes)S.notes=[];
+  localStorage.setItem('pf7',remoteRaw);
+  renderAll2();
+  console.log('ProjektFlow: dane zaktualizowane z Firebase');
+};
+
+// Force push local data to Firebase (use when starting on new device)
+window._triggerSave=()=>{if(window._fbSet&&S){window._fbIgnoreNext&&window._fbIgnoreNext();window._fbSet(JSON.parse(JSON.stringify(S)))}};
+function forceSyncToCloud(){
+  if(!window._fbSet){alert('Firebase nie jest połączone.');return}
+  if(!confirm('Wysłać dane z TEGO urządzenia do chmury?\n\nUwaga: dane na innych urządzeniach zostaną zastąpione!'))return;
+  window._fbIgnoreNext&&window._fbIgnoreNext();
+  window._fbSet(JSON.parse(JSON.stringify(S)))
+    .then(()=>alert('✓ Dane wysłane do chmury pomyślnie!'));
+}
+
+// ── Eksport / Import JSON ──────────────────────────────
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const date=new Date().toISOString().slice(0,10);
+  a.href=url;a.download=`projektflow-backup-${date}.json`;
+  a.click();URL.revokeObjectURL(url);
+}
+function importJSON(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.projects||!data.tasks){alert('Nieprawidłowy plik — brak projektów lub zadań.');return}
+      if(!confirm(`Importować dane z pliku "${file.name}"?\n\nAktualne dane zostaną zastąpione!`))return;
+      // Normalize
+      if(!data.goals)data.goals=[];
+      if(!data.kanban)data.kanban=[];
+      if(!Array.isArray(data.notes))data.notes=[];
+      if(!data.theme)data.theme='dark';
+      data.projects.forEach(p=>{if(!data.tasks[p.id])data.tasks[p.id]=[]});
+      Object.assign(S,data);
+      save();
+      renderAll2();
+      alert('✓ Dane zaimportowane pomyślnie!');
+    }catch(err){alert('Błąd odczytu pliku JSON:\n'+err.message)}
+  };
+  reader.readAsText(file);
+  event.target.value=''; // reset input
+}
 
 let S=load();
 if(!S){S={projects:DEF,tasks:{},notes:[],goals:[],kanban:[],theme:'dark'};DEF.forEach(p=>{S.tasks[p.id]=[];});  }
