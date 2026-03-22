@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl" data-theme="dark">
+<html lang="pl" data-theme="light">
 <link rel="icon" type="image/x-icon" href="ikonaa.png">
 <head>
 <meta charset="UTF-8">
@@ -108,6 +108,46 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .ib.del:hover{background:rgba(248,113,113,.12);color:var(--red)}
 .ib svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .pc-open-hint{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px;margin-top:8px;opacity:.7}
+
+/* Project card task preview list */
+.pc-tasks{border-top:1px solid var(--border);margin-top:12px}
+.pc-task-item{display:flex;align-items:flex-start;gap:9px;padding:8px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+.pc-task-item:last-child{border-bottom:none}
+.pc-task-item:hover{background:var(--card-b)}
+.pc-task-cb{appearance:none;width:15px;height:15px;border:1.5px solid var(--brd2);border-radius:3px;cursor:pointer;flex-shrink:0;margin-top:2px;position:relative;transition:all .15s;background:transparent}
+.pc-task-cb:checked{background:var(--pc,var(--accent));border-color:var(--pc,var(--accent))}
+.pc-task-cb:checked::after{content:'';position:absolute;left:3px;top:0px;width:4px;height:8px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg)}
+.pc-task-text{font-size:13px;line-height:1.4;color:var(--text);flex:1;min-width:0}
+.pc-task-meta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.pc-more-btn{width:100%;padding:8px 18px;background:transparent;border:none;color:var(--text3);font-family:'Plus Jakarta Sans',sans-serif;font-size:11.5px;font-weight:600;cursor:pointer;text-align:left;transition:all .14s;border-top:1px solid var(--border)}
+.pc-more-btn:hover{color:var(--accent);background:var(--glow)}
+.sc-card.clickable{cursor:pointer}
+.sc-card.clickable:hover{border-color:var(--accent);box-shadow:0 4px 18px var(--shadow),0 0 0 1px rgba(108,142,255,.2)}
+
+/* Today modal */
+.today-modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);z-index:200;display:flex;align-items:center;justify-content:center;animation:mf .16s ease}
+.today-modal-ov.hidden{display:none}
+.today-modal{background:var(--bg2);border:1px solid var(--brd2);border-radius:16px;width:560px;max-width:95vw;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(0,0,0,.45);animation:ms .2s ease}
+.today-modal-head{padding:22px 26px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.today-modal-title{font-family:'Lora',serif;font-size:19px;font-weight:700;letter-spacing:-.2px}
+.today-modal-close{background:none;border:1px solid var(--border);border-radius:var(--rs);color:var(--text2);cursor:pointer;font-size:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:all .14s}
+.today-modal-close:hover{border-color:var(--brd2);color:var(--text)}
+.today-modal-body{padding:16px 26px 22px;overflow-y:auto;flex:1}
+.today-group{margin-bottom:18px}
+.today-group-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:7px}
+
+/* Kanban priority */
+.kt-prio{font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:3px;flex-shrink:0}
+.kp-high{background:rgba(248,113,113,.15);color:#f87171}
+.kp-med{background:rgba(251,191,36,.15);color:#fbbf24}
+.kp-low{background:rgba(52,211,153,.15);color:#34d399}
+[data-theme="light"] .kp-high{background:rgba(220,38,38,.1);color:#dc2626}
+[data-theme="light"] .kp-med{background:rgba(217,119,6,.1);color:#d97706}
+[data-theme="light"] .kp-low{background:rgba(5,150,105,.1);color:#059669}
+/* Kanban drag */
+.ktask.drag-over-k{outline:2px dashed var(--accent);background:var(--glow)}
+.ktask.dragging-k{opacity:.35}
+.kday.kday-drag-over{background:rgba(108,142,255,.06);outline:2px dashed var(--accent);border-radius:var(--r)}
 
 /* ══ PROJECT DRAWER ════════════════════════════════════ */
 .drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:150;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -221,31 +261,29 @@ tbody tr:last-child td{border-bottom:none}
 .tba svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 
 /* ══ DAILY KANBAN ══════════════════════════════════════ */
-.kanban-wrap{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;min-height:400px}
-.kday{background:var(--card);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;min-height:340px;transition:all .15s}
+.kanban-wrap{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;min-height:400px}
+.kday{background:var(--card);border:1px solid var(--border);border-radius:var(--r);display:flex;flex-direction:column;min-height:340px;transition:all .15s;overflow:hidden}
 [data-theme="light"] .kday{background:var(--bg2);box-shadow:0 1px 5px var(--shadow)}
 .kday.today-col{border-color:var(--accent);background:rgba(108,142,255,.04)}
-.kday-header{padding:10px 12px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.kday-name{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--text3)}
+.kday-header{padding:10px 10px 8px;border-bottom:1px solid var(--border);text-align:center}
+.kday-name{font-size:11px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kday.today-col .kday-name{color:var(--accent)}
-.kday-num{font-family:'Lora',serif;font-size:18px;font-weight:700;color:var(--text3);line-height:1}
-.kday.today-col .kday-num{color:var(--accent)}
-.kday-tasks{flex:1;padding:8px}
+.kday-tasks{flex:1;padding:7px}
 .ktask{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rs);padding:9px 10px;margin-bottom:7px;cursor:pointer;transition:all .14s;position:relative}
 [data-theme="light"] .ktask{box-shadow:0 1px 3px var(--shadow)}
 .ktask:hover{border-color:var(--brd2);transform:translateY(-1px);box-shadow:0 4px 12px var(--shadow)}
 .ktask.done-k{opacity:.55}
 .ktask.done-k .kt-text{text-decoration:line-through;color:var(--text3)}
 .ktask-color-bar{position:absolute;top:0;left:0;bottom:0;width:3px;border-radius:var(--rs) 0 0 var(--rs)}
-.kt-text{font-size:12.5px;font-weight:500;line-height:1.4;margin-left:8px}
-.kt-meta{display:flex;align-items:center;gap:5px;margin-top:5px;margin-left:8px;flex-wrap:wrap}
+.kt-text{font-size:12px;font-weight:500;line-height:1.4;margin-left:8px;word-break:break-word}
+.kt-meta{display:flex;align-items:center;gap:4px;margin-top:5px;margin-left:8px;flex-wrap:wrap}
 .kt-proj{font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px}
 .kt-cat{font-size:10px;color:var(--text3)}
 .kt-check{position:absolute;top:8px;right:8px;appearance:none;width:14px;height:14px;border:1.5px solid var(--brd2);border-radius:3px;cursor:pointer;background:transparent;transition:all .14s;flex-shrink:0}
 .kt-check:checked{background:var(--accent);border-color:var(--accent)}
 .kt-check:checked::after{content:'';position:absolute;left:3px;top:0;width:5px;height:8px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg)}
-.kday-add{padding:8px;border-top:1px solid var(--border);margin-top:auto}
-.kday-add button{width:100%;padding:6px;font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;color:var(--text3);background:transparent;border:1px dashed var(--border);border-radius:var(--rs);cursor:pointer;transition:all .15s}
+.kday-add{padding:7px;border-top:1px solid var(--border);margin-top:auto}
+.kday-add button{width:100%;padding:5px;font-size:11.5px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;color:var(--text3);background:transparent;border:1px dashed var(--border);border-radius:var(--rs);cursor:pointer;transition:all .15s}
 .kday-add button:hover{border-color:var(--accent);color:var(--accent);background:var(--glow)}
 
 /* ══ STATS PANEL ═══════════════════════════════════════ */
@@ -397,6 +435,16 @@ input[type="color"]{width:100%;height:38px;padding:3px;border:1px solid var(--bo
 .sync-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--glow)}
 .sync-btn.danger:hover{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.08)}
 </style>
+<!-- Set theme immediately to prevent flash -->
+<script>
+(function(){
+  try{
+    const raw=localStorage.getItem('pf7');
+    const theme=raw?JSON.parse(raw).theme:'light';
+    document.documentElement.setAttribute('data-theme',theme||'light');
+  }catch(e){document.documentElement.setAttribute('data-theme','light')}
+})();
+</script>
 </head>
 <body>
 <!-- Firebase SDK -->
@@ -640,6 +688,17 @@ input[type="color"]{width:100%;height:38px;padding:3px;border:1px solid var(--bo
   </div>
 </div>
 
+<!-- TODAY TASKS MODAL -->
+<div class="today-modal-ov hidden" id="today-modal-ov" onclick="if(event.target===this)closeTodayModal()">
+  <div class="today-modal">
+    <div class="today-modal-head">
+      <div class="today-modal-title" id="today-modal-title">📅 Zadania na dziś</div>
+      <button class="today-modal-close" onclick="closeTodayModal()">✕</button>
+    </div>
+    <div class="today-modal-body" id="today-modal-body"></div>
+  </div>
+</div>
+
 <!-- EDIT TASK MODAL -->
 <div class="mov hidden" id="etov" onclick="if(event.target===this)closeET()">
   <div class="modal">
@@ -673,6 +732,8 @@ input[type="color"]{width:100%;height:38px;padding:3px;border:1px solid var(--bo
     <label>Treść zadania</label><input type="text" id="km-txt" placeholder="np. Sprawdź zamówienia…" maxlength="80">
     <label>Dodatkowe informacje</label><textarea id="km-info" rows="2" placeholder="Czego dotyczy, jak wykonać…"></textarea>
     <label>Kategoria / dział</label><input type="text" id="km-cat" placeholder="np. Księgowość, Marketing…" maxlength="30">
+    <label>Priorytet</label>
+    <select id="km-prio"><option value="med">🟡 Średni</option><option value="high">🔴 Wysoki</option><option value="low">🟢 Niski</option></select>
     <label>Projekt (opcjonalnie)</label>
     <select id="km-proj"><option value="">Bez projektu</option></select>
     <label>Kolor zadania</label>
@@ -836,7 +897,7 @@ function importJSON(event){
 }
 
 let S=load();
-if(!S){S={projects:DEF,tasks:{},notes:[],goals:[],kanban:[],theme:'dark'};DEF.forEach(p=>{S.tasks[p.id]=[];});  }
+if(!S){S={projects:DEF,tasks:{},notes:[],goals:[],kanban:[],theme:'light'};DEF.forEach(p=>{S.tasks[p.id]=[];});  }
 S.projects.forEach(p=>{if(!S.tasks[p.id])S.tasks[p.id]=[]});
 if(!S.goals)S.goals=[];if(!S.kanban)S.kanban=[];if(!S.notes)S.notes=[];
 if(!S.theme)S.theme='dark';
@@ -877,7 +938,7 @@ document.getElementById('theme-btn').onclick=()=>{S.theme=S.theme==='dark'?'ligh
 document.getElementById('sdate').textContent=new Date().toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
 
 // ── Panels ──────────────────────────────────────────────
-let cur='overview',afilt='all',allView='active';
+let cur='overview',afilt='all',allView='active',dateFilter=null;
 const doneOpen={};
 const pTitles={overview:'Przegląd',all:'Wszystkie zadania',daily:'Codzienne zadania',stats:'Statystyki',goals:'Cele',calendar:'Kalendarz',notes:'Notatki'};
 
@@ -887,6 +948,8 @@ function goPanel(n,btn){
   document.getElementById('panel-'+n).classList.add('active');
   if(btn)btn.classList.add('active');
   cur=n;
+  // Reset date filter when navigating manually
+  if(n==='all')dateFilter=null;
   document.getElementById('ttitle').textContent=pTitles[n]||n;
   const tb=document.getElementById('topbar-btn');
   if(n==='goals'){tb.textContent='＋ Nowy cel';tb.onclick=openGoalModal}
@@ -941,6 +1004,8 @@ function closeDrawer(){
   document.getElementById('drawer').classList.remove('open');
   drawerPid=null;
   document.body.style.overflow='';
+  // Refresh overview so task changes appear immediately
+  if(cur==='overview')renderOverview();
 }
 function renderDrawer(pid){
   const p=gp(pid);if(!p)return;
@@ -970,6 +1035,8 @@ function addTaskDrawer(){
   S.tasks[drawerPid].push({id:uid(),text,prio:pr.value||'med',done:false,dateFrom:df.value||'',dateTo:dt.value||'',note:'',addedAt:new Date().toISOString()});
   save();inp.value='';df.value='';dt.value='';
   renderDrawer(drawerPid);renderStats();renderSidebar();
+  // Refresh overview cards in background so tasks appear when drawer closes
+  if(cur==='overview')renderOverview();
 }
 document.getElementById('drw-ti').addEventListener('keydown',e=>{if(e.key==='Enter')addTaskDrawer()});
 
@@ -980,38 +1047,139 @@ function renderStats(){
   const tod=all.filter(t=>!t.done&&dSt(t)==='today').length;
   const pct=all.length?Math.round(done/all.length*100):0;
   document.getElementById('srow').innerHTML=`
-    <div class="sc-card"><div class="sc-val">${all.length}</div><div class="sc-lbl">Wszystkich zadań</div><div class="sc-sub">${S.projects.length} projektów</div></div>
-    <div class="sc-card" style="--sg:linear-gradient(90deg,var(--green),#059669)"><div class="sc-val" style="color:var(--green)">${done}</div><div class="sc-lbl">Ukończonych</div><div class="sc-sub">${pct}% całości</div></div>
-    <div class="sc-card" style="--sg:linear-gradient(90deg,var(--yellow),#d97706)"><div class="sc-val" style="color:var(--yellow)">${tod}</div><div class="sc-lbl">Na dziś</div><div class="sc-sub">zaplanowanych</div></div>
-    <div class="sc-card" style="--sg:linear-gradient(90deg,var(--red),#dc2626)"><div class="sc-val" style="color:${over?'var(--red)':'var(--text)'}">${over}</div><div class="sc-lbl">Przeterminowanych</div><div class="sc-sub">${over?'wymaga uwagi':'wszystko ok ✓'}</div></div>`;
+    <div class="sc-card clickable" onclick="goToAllTasks('all','active')" title="Zobacz wszystkie aktywne zadania">
+      <div class="sc-val">${all.length}</div>
+      <div class="sc-lbl">Wszystkich zadań</div>
+      <div class="sc-sub">${S.projects.length} projektów · kliknij</div>
+    </div>
+    <div class="sc-card clickable" style="--sg:linear-gradient(90deg,var(--green),#059669)" onclick="goToAllTasks('all','done')" title="Zobacz ukończone zadania">
+      <div class="sc-val" style="color:var(--green)">${done}</div>
+      <div class="sc-lbl">Ukończonych</div>
+      <div class="sc-sub">${pct}% całości · kliknij</div>
+    </div>
+    <div class="sc-card clickable" style="--sg:linear-gradient(90deg,var(--yellow),#d97706)" onclick="openTodayModal('today')" title="Zobacz zadania na dziś">
+      <div class="sc-val" style="color:var(--yellow)">${tod}</div>
+      <div class="sc-lbl">Na dziś</div>
+      <div class="sc-sub">${tod?'kliknij aby zobaczyć':'brak zaplanowanych'}</div>
+    </div>
+    <div class="sc-card clickable" style="--sg:linear-gradient(90deg,var(--red),#dc2626)" onclick="openTodayModal('overdue')" title="Zobacz przeterminowane">
+      <div class="sc-val" style="color:${over?'var(--red)':'var(--text)'}">${over}</div>
+      <div class="sc-lbl">Przeterminowanych</div>
+      <div class="sc-sub">${over?'kliknij aby zobaczyć':'wszystko ok ✓'}</div>
+    </div>`;
+}
+
+// Navigate to all-tasks with specific filter preset
+function goToAllTasks(projFilt, viewMode){
+  afilt=projFilt||'all';
+  allView=viewMode||'active';
+  dateFilter=null;
+  // Update tab badges UI
+  const vA=document.getElementById('vtab-active');
+  const vD=document.getElementById('vtab-done');
+  if(vA)vA.classList.toggle('active',viewMode==='active');
+  if(vD)vD.classList.toggle('active',viewMode==='done');
+  // Switch nav
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const allNavBtn=[...document.querySelectorAll('.nav-btn')].find(b=>b.getAttribute('onclick')?.includes("'all'"));
+  if(allNavBtn)allNavBtn.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-all').classList.add('active');
+  cur='all';
+  document.getElementById('ttitle').textContent='Wszystkie zadania';
+  const tb=document.getElementById('topbar-btn');
+  tb.textContent='＋ Nowy projekt';tb.onclick=openPM;
+  renderAll();
 }
 function renderOverview(){
   renderStats();const g=document.getElementById('pgrid');g.innerHTML='';
   S.projects.forEach(p=>{
-    const tasks=S.tasks[p.id]||[];const done=tasks.filter(t=>t.done).length;const pct=tasks.length?Math.round(done/tasks.length*100):0;
+    const tasks=S.tasks[p.id]||[];
+    const active=tasks.filter(t=>!t.done);
+    const done=tasks.filter(t=>t.done).length;
+    const pct=tasks.length?Math.round(done/tasks.length*100):0;
     const card=document.createElement('div');card.className='pc';
-    card.innerHTML=`
-      <div class="pc-inner">
-        <div class="pc-head">
-          <div>
-            <div class="pc-name"><span class="pdot" style="background:${p.color}"></span>${esc(p.name)}</div>
-            <div class="pc-stats"><span class="chip">${tasks.length} zadań</span>${done?`<span class="chip g">${done} gotowe</span>`:''}</div>
-          </div>
-          <div class="pc-actions">
-            <button class="ib" onclick="event.stopPropagation();openEditProj('${p.id}')" title="Edytuj">${I.edit}</button>
-            <button class="ib del" onclick="event.stopPropagation();delProj('${p.id}')" title="Usuń">${I.trash}</button>
+
+    // Header
+    const inner=document.createElement('div');inner.className='pc-inner';
+    inner.innerHTML=`
+      <div class="pc-head">
+        <div>
+          <div class="pc-name"><span class="pdot" style="background:${p.color}"></span>${esc(p.name)}</div>
+          <div class="pc-stats">
+            <span class="chip">${active.length} aktywnych</span>
+            ${done?`<span class="chip g">${done} gotowe</span>`:''}
           </div>
         </div>
-        <div class="pc-pbar"><div class="pc-pfill" style="width:${pct}%;background:${p.color};box-shadow:0 0 8px ${p.color}44"></div></div>
-        <div class="pc-meta"><span>${done}/${tasks.length} ukończonych</span><span>${pct}%</span></div>
-        <div class="pc-open-hint"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg> Kliknij aby otworzyć projekt</div>
-      </div>`;
-    card.addEventListener('click',()=>openDrawer(p.id));
+        <div class="pc-actions">
+          <button class="ib" onclick="event.stopPropagation();openEditProj('${p.id}')" title="Edytuj">${I.edit}</button>
+          <button class="ib del" onclick="event.stopPropagation();delProj('${p.id}')" title="Usuń">${I.trash}</button>
+        </div>
+      </div>
+      <div class="pc-pbar"><div class="pc-pfill" style="width:${pct}%;background:${p.color};box-shadow:0 0 8px ${p.color}44"></div></div>
+      <div class="pc-meta"><span>${done}/${tasks.length} ukończonych</span><span>${pct}%</span></div>`;
+    card.appendChild(inner);
+
+    // Active task list — always visible, max 5
+    const tl=document.createElement('div');tl.className='pc-tasks';
+    if(!active.length){
+      const emptyRow=document.createElement('div');
+      emptyRow.style.cssText='padding:12px 18px;font-size:12.5px;color:var(--text3);text-align:center';
+      emptyRow.textContent=tasks.length?'Wszystkie zadania ukończone 🎉':'Brak zadań — kliknij aby dodać';
+      tl.appendChild(emptyRow);
+    } else {
+      active.slice(0,5).forEach(t=>{
+        const idx=tasks.indexOf(t);
+        const ds=dSt(t);const dl=dLbl(t);
+        const row=document.createElement('div');row.className='pc-task-item';
+        row.innerHTML=`
+          <input type="checkbox" class="pc-task-cb" style="--pc:${p.color}" onchange="event.stopPropagation();toggle('${p.id}',${idx})">
+          <div class="tb">
+            <div class="pc-task-text">${esc(t.text)}</div>
+            <div class="pc-task-meta">
+              ${dl?`<span class="td ${ds||''}" style="font-size:10px">${dIco[ds]||''}${dl}</span>`:''}
+              <span class="pb ${PC[t.prio]}" style="font-size:9.5px">${PL[t.prio]}</span>
+            </div>
+          </div>`;
+        row.addEventListener('click',e=>{if(e.target.classList.contains('pc-task-cb'))return;openDrawer(p.id)});
+        tl.appendChild(row);
+      });
+      if(active.length>5){
+        const more=document.createElement('button');more.className='pc-more-btn';
+        more.textContent=`+ ${active.length-5} więcej — otwórz projekt`;
+        more.addEventListener('click',e=>{e.stopPropagation();openDrawer(p.id)});
+        tl.appendChild(more);
+      }
+    }
+    card.appendChild(tl);
+
+    card.addEventListener('click',e=>{
+      if(e.target.classList.contains('pc-task-cb')||e.target.closest('.pc-actions')||e.target.closest('.pc-more-btn'))return;
+      openDrawer(p.id);
+    });
     g.appendChild(card);
   });
 }
 
-// ── Shared task item builder ─────────────────────────────
+// ── Today / overdue shortcut — przełącza na "Wszystkie zadania" ──
+function openTodayModal(filter='today'){
+  // Set date filter and switch panel
+  dateFilter=filter;
+  allView='active';
+  // Switch nav button active state
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  const allBtn=[...document.querySelectorAll('.nav-btn')].find(b=>b.getAttribute('onclick')?.includes("'all'"));
+  if(allBtn)allBtn.classList.add('active');
+  // Switch panel
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-all').classList.add('active');
+  cur='all';
+  document.getElementById('ttitle').textContent='Wszystkie zadania';
+  const topBtn=document.getElementById('topbar-btn');
+  topBtn.textContent='＋ Nowy projekt';topBtn.onclick=openPM;
+  renderAll();
+}
+function closeTodayModal(){} // kept for compatibility
 function makeTI(t,i,pid,p,isDone){
   const ds=dSt(t),dl=dLbl(t);
   const d=document.createElement('div');d.className='ti'+(isDone?' done-item':'');
@@ -1048,6 +1216,7 @@ function toggle(pid,idx){
   save();
   if(drawerPid===pid)renderDrawer(pid);
   renderStats();renderSidebar();
+  if(cur==='overview')renderOverview();
   if(cur==='all')renderAll();if(cur==='stats')renderStats2();
 }
 function delT(pid,idx){
@@ -1095,14 +1264,32 @@ function renderAll(){
   const allTasks=allT();
   document.getElementById('vbadge-active').textContent=allTasks.filter(t=>!t.done).length;
   document.getElementById('vbadge-done').textContent=allTasks.filter(t=>t.done).length;
+
   const fp=document.getElementById('fpills');
   fp.innerHTML=`<button class="fpill ${afilt==='all'?'active':''}" onclick="setFilt('all')">Wszystkie</button>`;
   S.projects.forEach(p=>fp.innerHTML+=`<button class="fpill ${afilt===p.id?'active':''}" onclick="setFilt('${p.id}')"><span class="fdot" style="background:${p.color}"></span>${esc(p.name)}</button>`);
+
+  // Date filter chip (shown when coming from Na dziś / Przeterminowane)
+  if(dateFilter){
+    const label=dateFilter==='today'?'📅 Na dziś':'⚠ Przeterminowane';
+    fp.innerHTML+=`<button class="fpill active" style="background:rgba(108,142,255,.18);border-color:var(--accent);color:var(--accent)" onclick="dateFilter=null;renderAll()">${label} ✕</button>`;
+  }
+
   const q=(document.getElementById('sinp')?.value||'').toLowerCase();
-  let tasks=allTasks.filter(t=>afilt==='all'||t.pid===afilt).filter(t=>allView==='done'?t.done:!t.done).filter(t=>!q||t.text.toLowerCase().includes(q)||(t.note||'').toLowerCase().includes(q));
+  let tasks=allTasks
+    .filter(t=>afilt==='all'||t.pid===afilt)
+    .filter(t=>allView==='done'?t.done:!t.done)
+    .filter(t=>!q||t.text.toLowerCase().includes(q)||(t.note||'').toLowerCase().includes(q));
+
+  // Apply date filter if coming from stats cards
+  if(dateFilter){
+    tasks=tasks.filter(t=>dSt(t)===dateFilter);
+  }
+
   if(sCol){const dr=t=>t.dateTo||t.dateFrom||'9999';const so=t=>t.done?2:(dSt(t)==='overdue'?0:1);tasks.sort((a,b)=>{let va,vb;if(sCol==='proj'){va=gp(a.pid)?.name||'';vb=gp(b.pid)?.name||''}else if(sCol==='date'){va=dr(a);vb=dr(b)}else if(sCol==='prio'){va=PO[a.prio]??1;vb=PO[b.prio]??1}else if(sCol==='stat'){va=so(a);vb=so(b)}return va<vb?-sDir:va>vb?sDir:0})}
   const tbody=document.getElementById('tbody');tbody.innerHTML='';
-  if(!tasks.length){const msg=allView==='done'?'Brak ukończonych zadań.':'Brak aktywnych zadań — wszystko gotowe! 🎉';tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:28px;font-size:13.5px">${msg}</td></tr>`;return}
+  const emptyMsg=dateFilter==='today'?'Brak zadań na dziś 🎉':dateFilter==='overdue'?'Brak przeterminowanych zadań ✓':allView==='done'?'Brak ukończonych zadań.':'Brak aktywnych zadań — wszystko gotowe! 🎉';
+  if(!tasks.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:28px;font-size:13.5px">${emptyMsg}</td></tr>`;return}
   tasks.forEach(t=>{
     const p=gp(t.pid);const idx=(S.tasks[t.pid]||[]).findIndex(x=>x.id===t.id);
     const ds=dSt(t);const dl=dLbl(t);
@@ -1149,19 +1336,65 @@ function buildKColors(){
 }
 
 function renderKanban(){
-  const today=(new Date().getDay()+6)%7; // Mon=0
+  const today=(new Date().getDay()+6)%7;
   const wrap=document.getElementById('kanban-wrap');wrap.innerHTML='';
-  DAYS_S.forEach((dayS,di)=>{
+  const PRIO_K={high:{cls:'kp-high',lbl:'Wysoki'},med:{cls:'kp-med',lbl:'Średni'},low:{cls:'kp-low',lbl:'Niski'}};
+
+  DAYS.forEach((dayName,di)=>{
     const col=document.createElement('div');col.className='kday'+(di===today?' today-col':'');
-    const now=new Date();const dayNum=new Date(now.setDate(now.getDate()-(now.getDay()+6)%7+di)).getDate();
-    col.innerHTML=`<div class="kday-header"><div class="kday-name">${dayS}</div><div class="kday-num">${dayNum}</div></div><div class="kday-tasks" id="kdt-${di}"></div><div class="kday-add"><button onclick="openKanbanModal(${di},null)">+ Dodaj</button></div>`;
+    col.innerHTML=`<div class="kday-header"><div class="kday-name">${dayName}</div></div><div class="kday-tasks" id="kdt-${di}"></div><div class="kday-add"><button onclick="openKanbanModal(${di},null)">+ Dodaj</button></div>`;
     const tasksArea=col.querySelector(`#kdt-${di}`);
-    S.kanban.filter(k=>k.day===di).forEach(k=>{
+
+    // Drop zone on column background
+    col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('kday-drag-over')});
+    col.addEventListener('dragleave',e=>{if(!col.contains(e.relatedTarget))col.classList.remove('kday-drag-over')});
+    col.addEventListener('drop',e=>{
+      e.preventDefault();col.classList.remove('kday-drag-over');
+      const kId=e.dataTransfer.getData('kId');
+      if(!kId)return;
+      const k=S.kanban.find(x=>x.id===kId);
+      if(k&&k.day!==di){k.day=di;save();renderKanban()}
+    });
+
+    // Sort by priority then by order
+    const prioOrd={high:0,med:1,low:2};
+    const dayTasks=[...S.kanban.filter(k=>k.day===di)].sort((a,b)=>(prioOrd[a.prio??'med']??1)-(prioOrd[b.prio??'med']??1));
+
+    dayTasks.forEach(k=>{
       const p=gp(k.projId);
-      const item=document.createElement('div');item.className='ktask'+(k.done?' done-k':'');
+      const pr=PRIO_K[k.prio||'med'];
+      const item=document.createElement('div');
+      item.className='ktask'+(k.done?' done-k':'');
+      item.setAttribute('draggable','true');
       item.style.paddingLeft='14px';
-      item.innerHTML=`<div class="ktask-color-bar" style="background:${k.color||'var(--accent)'}"></div><input type="checkbox" class="kt-check" ${k.done?'checked':''} onchange="toggleKanban('${k.id}')"><div class="kt-text">${esc(k.text)}</div><div class="kt-meta">${p?`<span class="kt-proj" style="background:rgba(${h2r(p.color)},.15);color:${p.color}">${esc(p.name)}</span>`:''}<span class="kt-cat">${k.cat?esc(k.cat):''}</span></div>`;
-      item.onclick=e=>{if(e.target.classList.contains('kt-check'))return;openKanbanModal(k.day,k.id)};
+      item.innerHTML=`
+        <div class="ktask-color-bar" style="background:${k.color||'var(--accent)'}"></div>
+        <input type="checkbox" class="kt-check" ${k.done?'checked':''} onchange="toggleKanban('${k.id}')">
+        <div class="kt-text">${esc(k.text)}</div>
+        <div class="kt-meta">
+          <span class="kt-prio ${pr.cls}">${pr.lbl}</span>
+          ${p?`<span class="kt-proj" style="background:rgba(${h2r(p.color)},.15);color:${p.color}">${esc(p.name)}</span>`:''}
+          ${k.cat?`<span class="kt-cat">${esc(k.cat)}</span>`:''}
+        </div>`;
+
+      // Drag events on task
+      item.addEventListener('dragstart',e=>{
+        e.dataTransfer.setData('kId',k.id);
+        e.dataTransfer.effectAllowed='move';
+        setTimeout(()=>item.classList.add('dragging-k'),0);
+      });
+      item.addEventListener('dragend',()=>item.classList.remove('dragging-k'));
+      item.addEventListener('dragover',e=>{e.preventDefault();e.stopPropagation();item.classList.add('drag-over-k')});
+      item.addEventListener('dragleave',()=>item.classList.remove('drag-over-k'));
+      item.addEventListener('drop',e=>{
+        e.preventDefault();e.stopPropagation();item.classList.remove('drag-over-k');
+        const kId=e.dataTransfer.getData('kId');
+        if(!kId||kId===k.id)return;
+        const srcK=S.kanban.find(x=>x.id===kId);
+        if(srcK){srcK.day=di;save();renderKanban()}
+      });
+
+      item.addEventListener('click',e=>{if(e.target.classList.contains('kt-check'))return;openKanbanModal(k.day,k.id)});
       tasksArea.appendChild(item);
     });
     wrap.appendChild(col);
@@ -1178,6 +1411,7 @@ function openKanbanModal(day,editId){
   document.getElementById('km-txt').value=k?.text||'';
   document.getElementById('km-info').value=k?.info||'';
   document.getElementById('km-cat').value=k?.cat||'';
+  document.getElementById('km-prio').value=k?.prio||'med';
   document.getElementById('km-day').value=k?.day??kModalDay;
   selKColor=k?.color||KTASK_COLORS[0];
   const sel=document.getElementById('km-proj');
@@ -1191,7 +1425,15 @@ function openKanbanModal(day,editId){
 function closeKM(){document.getElementById('kmov').classList.add('hidden');eKanbanId=null}
 function saveKM(){
   const text=document.getElementById('km-txt').value.trim();if(!text)return;
-  const data={text,info:document.getElementById('km-info').value.trim(),cat:document.getElementById('km-cat').value.trim(),projId:document.getElementById('km-proj').value,color:selKColor,day:parseInt(document.getElementById('km-day').value)};
+  const data={
+    text,
+    info:document.getElementById('km-info').value.trim(),
+    cat:document.getElementById('km-cat').value.trim(),
+    prio:document.getElementById('km-prio').value||'med',
+    projId:document.getElementById('km-proj').value,
+    color:selKColor,
+    day:parseInt(document.getElementById('km-day').value)
+  };
   if(eKanbanId){const k=S.kanban.find(x=>x.id===eKanbanId);if(k)Object.assign(k,data)}
   else{S.kanban.push({id:'k_'+uid(),done:false,...data})}
   save();closeKM();renderKanban();
